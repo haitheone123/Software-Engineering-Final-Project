@@ -2,57 +2,51 @@
 
 ChessCorPy
 ====================
-A simple web-based correspondence chess application written in Python+Flask.
+Bài tập lớn bộ môn Kỹ thuật phần mềm.
+Sinh viên thực hiện:
+* Nguyễn Đức Hải
+* Nguyễn Văn Thành
+* Nguyễn Trần Hùng
+Phần mềm web-based đơn giản cho trò chơi cờ vua bằng ngôn ngữ Python và framework Flask + SQLite. 
 
-This was made just to get familliar with Flask and Python as a back-end web development platform. 
-Thus, I spent very little time on the front-end and it's pretty ugly.
+Chức năng
 
-Although this does not have near the number of features of professional chess apps, it has all the basics such as:
+* Khởi tạo tài khoản
+* Tạo ra các phòng chơi public / private
+* Màn hình giao tiếp giữa các người chơi
+* Gửi mail tự động cho người chơi (đang phát triển)
+* Kiểm tra input và lỗi
+* Mô phỏng trò chơi cờ vua
 
-* Account creation system
-* Creating and viewing public and private challenge requests
-* Chat system
-* Automatic email notifications when a move is played
-* Input validation, error handling, and basic security
-* And of course, a playable chess board!
 
-View a live demo [here!](https://chesscorpy.herokuapp.com/) (does not currently work on mobile unfortunately)
-
-Requirements
+Yêu cầu
 ============
 * Python 3+
-* All requirements in requirements.txt
+* Các package trong file requirements.txt
 
-Installation
+Cài đặt 
 ============
 ```pip install -r requirements.txt```
 
-Run
+Khởi chạy phần mềm
 ===
-In the folder where the chesscorpy package is located:
-
+Ở trong folder chứa package chesscorpy (ưu tiên môi trường ảo)
+Trước hết kích hoạt môi trường ảo
 ```
-export FLASK_APP=chesscorpy
+
+set FLASK_APP=./chesscorpy/app.py
+$env FLASK_APP="./chesscorpy/app.py"
 flask run
 ```
 
-Configure
-=========
-* In app.py, modify email configuration if you wish to have emails sent out to players.
-* Modify database.py if you wish to use a database platform other than SQLite.
-
-Testing
+Nhận xét
 =======
-Unit tests are kept in the /tests folder and can be run with pytest.
+Các chức năng chưa thực sự hoàn chỉnh, một số chức năng xung đột và gây ra lỗi
+Giao diện chưa đẹp
+Chỉ chạy được trên một máy
 
-This was my first time implementing tests so I never got around to implementing
-any that require mock data but I will work on that next time.
 
-Contributing
-============
-Anyone is free to contribute. If a front-end developer wants to take a stab at making it less ugly and functional on mobile I'd greatly appreciate it!
-
-Acknowledgements
+File tham khảo từ các repository khác
 ================
 * Chris Oakman (chessboard.js)
 * Jeff Hlywa (chess.js)
