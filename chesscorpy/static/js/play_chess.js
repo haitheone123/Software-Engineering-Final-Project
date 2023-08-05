@@ -1,0 +1,269 @@
+function getUserId() {
+    if (USER_COLOR === 'white') {
+        return PLAYER_WHITE_ID
+    } else if (USER_COLOR === 'black') {
+        return PLAYER_BLACK_ID
+    } else {
+        return 'none'
+    }
+}
+
+function setChatDisplay(chats) {
+    $('#chat').html('')
+    for (const msg of chats) {
+        $('#chat').append('<b>' + msg['user_name'] + '</b>: '
+                          + msg['contents'] + '<br>')
+    }
+}
+
+function getChat() {
+    $.get('/chat',
+        {
+            id: GAME_ID
+        },
+        function (data, success) {
+            if (data && success === 'success') {
+                setChatDisplay(data)
+            } else {
+                alert('Unable to load chat messages!')
+            }
+        }
+    )
+}
+
+function postChat() {
+    const user_id = getUserId()
+
+    if (user_id === 'none') {
+        return false
+    }
+
+    $.post('/chat',
+        {
+            game_id: GAME_ID,
+            user_id: user_id,
+            msg: $('#msg').val()
+        },
+        function (data, success) {
+            if (data.successful && success === 'success') {
+                getChat()
+                $('#msg').val('')
+            } else {
+                alert('Unable to send chat message!')
+            }
+        }
+    )
+}
+
+function postMove(move_san) {
+    $.post('/move', {
+            id: GAME_ID,
+            move: move_san
+        },
+        function (data, status) {
+            if (!data.successful || status !== 'success') {
+                alert('Unable to perform move.')
+                game.undo()
+                board.position(game.fen())
+            }
+        }
+    )
+}
+
+function promptPromotion() {
+    const promote_to = prompt('Enter piece you want to promote to: '
+                            + '((q)ueen, (r)ook, (b)ishop, k(n)ight): ', 'q')
+
+    if ('qrbn'.includes(promote_to)) {
+        return promote_to
+    } else {
+        return 'q'
+    }
+}
+
+function moveIsLegal(from, to) {
+    for (const move of game.moves({ square: from, verbose: true })) {
+        if (move.to === to) {
+            return true
+        }
+    }
+
+    return false
+}
+
+function moveIsPromotion(from, to) {
+    // Check if piece is pawn and if it is about to move to the 1st or 8th rank
+    return game.get(from).type === 'p' && (to[1] === '1' || to[1] === '8')
+}
+
+function setCapturedDisplay() {
+    if (board.orientation() === 'white') {
+        first_captured = captured_white
+        first_color = 'w'
+        second_captured = captured_black
+        second_color = 'b'
+    } else {
+        first_captured = captured_black
+        first_color = 'b'
+        second_captured = captured_white
+        second_color = 'w'
+    }
+    $('#captured').html('')
+    for (const piece in first_captured) {
+        for (let i = 0; i < first_captured[piece]; i++) {
+            $('#captured').append('<img src="/static/img/chesspieces/wikipedia/' + first_color + piece + '.png" width="15%" height="15%" />')
+        }
+    }
+    $('#captured').append('<br>' + game.pgn({newline_char: '<br>', show_headers: false}) + '<br><br>')
+    for (const piece in second_captured) {
+        for (let i = 0; i < second_captured[piece]; i++) {
+            $('#captured').append('<img src="/static/img/chesspieces/wikipedia/' + second_color + piece + '.png" width="15%" height="15%" />')
+        }
+    }
+}
+
+function getCapturedPieces(color) {
+    const captured = {'Q': 0, 'R': 0, 'B': 0, 'N': 0, 'P': 0}
+
+    for (const move of game.history({ verbose: true })) {
+        if (move.hasOwnProperty('captured') && move.color !== color[0]) {
+            captured[move.captured.toUpperCase()]++
+        }
+    }
+
+    return captured
+}
+
+function endGame(msg) {
+    alert(msg)
+}
+
+function checkGame() {
+    if (game.in_checkmate()) {
+        endGame('Game over. Checkmate!')
+    } else if (game.in_draw()) {
+        endGame('Game over. Draw!')
+    } else if (game.in_stalemate()) {
+        endGame('Game over. Stalemate!')
+    } else if (game.in_threefold_repetition()) {
+        endGame('Game over. Draw by three-fold repetition!')
+    }
+}
+
+function unHighlightSquares() {
+    $('#' + BOARD_NAME + ' .square-55d63').css('background', '')
+}
+
+function highlightSquare(square) {
+    const $square = $('#' + BOARD_NAME + ' .square-' + square)
+    let background = '#a9a9a9'
+
+    if ($square.hasClass('black-3c85d')) {
+        background = '#696969'
+    }
+
+    $square.css('background', background)
+}
+
+function onPieceDrag(source, piece, position, orientation) {
+    // Checks that it's the selected piece's color's turn to move,
+    // that it is the player's turn, and that the game is not over.
+    if (game.turn() != piece[0] || game.turn() != USER_COLOR[0] ||
+        game.game_over()) {
+        return false
+    }
+}
+
+function onPieceMove(source, target) {
+    unHighlightSquares()
+
+    if (moveIsLegal(source, target) && moveIsPromotion(source, target)) {
+        var promote_to = promptPromotion()
+    } else {
+        var promote_to = 'q'
+    }
+
+    const move = game.move({
+        from: source,
+        to: target,
+        promotion: promote_to
+    })
+
+    if (move === null) {
+        return 'snapback'
+    }
+
+    // For now naively re-check for captured pieces
+    // even if move didn't result in capture.
+    captured_white = getCapturedPieces('white')
+    captured_black = getCapturedPieces('black')
+    setCapturedDisplay()
+
+    checkGame()
+    postMove(move.san)
+}
+
+function onMouseoverSquare(square, piece) {
+    const moves = game.moves({
+        square: square,
+        verbose: true
+    })
+
+    if (moves.length === 0 || game.turn() != USER_COLOR[0]) {
+        return
+    }
+
+    highlightSquare(square)
+
+    for (const move of moves) {
+        highlightSquare(move.to)
+    }
+}
+
+function onMouseoutSquare(square, piece) {
+    unHighlightSquares()
+}
+
+function onSnapEnd() {
+    board.position(game.fen())
+}
+
+
+const board_config = {
+    position: 'start',
+    draggable: true,
+    onDragStart: onPieceDrag,
+    onDrop: onPieceMove,
+    onMouseoverSquare: onMouseoverSquare,
+    onMouseoutSquare: onMouseoutSquare,
+    onSnapEnd: onSnapEnd
+}
+
+const BOARD_NAME = 'board'
+const game = new Chess()
+const board = Chessboard(BOARD_NAME, board_config)
+
+if (PGN != 'None') {
+    game.load_pgn(PGN)
+    board.position(game.fen(), false)
+}
+
+if (USER_COLOR === 'white' || USER_COLOR === 'none') {
+    board.orientation('white')
+} else {
+    board.orientation('black')
+}
+
+if (board.orientation() === 'white') {
+    $('#player1').html('<h3><b>' + PLAYER_BLACK + '</b></h3>')
+    $('#player2').html('<h3><b>' + PLAYER_WHITE + '</b></h3>')
+} else {
+    $('#player1').html('<b>' + PLAYER_WHITE + '</b>')
+    $('#player2').html('<b>' + PLAYER_BLACK + '</b>')
+}
+
+let captured_white = getCapturedPieces('white')
+let captured_black = getCapturedPieces('black')
+setCapturedDisplay()
+
+getChat()
