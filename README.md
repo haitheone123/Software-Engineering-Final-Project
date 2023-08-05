@@ -1,4 +1,4 @@
-![Image of ChessCorPy](https://raw.githubusercontent.com/kurtjd/chesscorpy/master/chesscorpy/static/img/screenshot.png)
+![Hình ảnh](https://raw.githubusercontent.com/kurtjd/chesscorpy/master/chesscorpy/static/img/screenshot.png)
 
 ChessCorPy
 ====================
@@ -7,6 +7,7 @@ Sinh viên thực hiện:
 * Nguyễn Đức Hải
 * Nguyễn Văn Thành
 * Nguyễn Trần Hùng
+  
 Phần mềm web-based đơn giản cho trò chơi cờ vua bằng ngôn ngữ Python và framework Flask + SQLite. 
 
 Chức năng
