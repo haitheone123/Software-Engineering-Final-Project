@@ -32,6 +32,7 @@ Cài đặt
 Khởi chạy phần mềm
 ===
 Ở trong folder chứa package chesscorpy (ưu tiên môi trường ảo)
+
 Trước hết kích hoạt môi trường ảo
 ```
 
@@ -43,9 +44,10 @@ flask run
 Nhận xét
 =======
 Các chức năng chưa thực sự hoàn chỉnh, một số chức năng xung đột và gây ra lỗi
-Giao diện chưa đẹp
-Chỉ chạy được trên một máy
 
+Giao diện chưa đẹp
+
+Chỉ chạy được trên một máy
 
 File tham khảo từ các repository khác
 ================
